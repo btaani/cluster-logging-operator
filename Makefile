@@ -144,12 +144,28 @@ MANIFESTS=manifests/$(LOGGING_VERSION)
 # Do all code/CRD generation at once, with timestamp file to check out-of-date.
 GEN_TIMESTAMP=.target/codegen
 
+BUNDLE_VERSION?=$(LOGGING_VERSION).0
+BUNDLE_CHANNELS := --channels=stable,stable-${LOGGING_VERSION}
+BUNDLE_DEFAULT_CHANNEL := --default-channel=stable
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+
+# BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
+BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(BUNDLE_VERSION) $(BUNDLE_METADATA_OPTS)
+
+# USE_IMAGE_DIGESTS defines if images are resolved via tags or digests
+# You can enable this value if you would like to use SHA Based Digests
+# To enable set flag to true
+USE_IMAGE_DIGESTS ?= false
+ifeq ($(USE_IMAGE_DIGESTS), true)
+    BUNDLE_GEN_FLAGS += --use-image-digests
+endif
+
 .PHONY: generate
 generate: $(GEN_TIMESTAMP)
 $(GEN_TIMESTAMP): $(shell find apis -name '*.go')  $(OPERATOR_SDK) $(CONTROLLER_GEN) $(KUSTOMIZE) .target
 	@$(CONTROLLER_GEN) object paths="./apis/..."
 	@$(CONTROLLER_GEN) rbac:roleName=clusterlogging-operator crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	@bash ./hack/generate-crd.sh
+	@bash ./hack/generate-crd.sh "$(BUNDLE_GEN_FLAGS)"
 	@$(MAKE) fmt
 	@touch $@
 
