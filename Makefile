@@ -133,7 +133,7 @@ GEN_TIMESTAMP=.target/codegen
 generate: $(GEN_TIMESTAMP)
 $(GEN_TIMESTAMP): $(shell find apis -name '*.go')  $(OPERATOR_SDK) $(CONTROLLER_GEN) $(KUSTOMIZE) .target
 	@$(CONTROLLER_GEN) object paths="./apis/..."
-	@$(CONTROLLER_GEN) crd:crdVersions=v1 rbac:roleName=clusterlogging-operator paths="./..." output:crd:artifacts:config=config/crd/bases
+	@$(CONTROLLER_GEN) rbac:roleName=clusterlogging-operator crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	@bash ./hack/generate-crd.sh
 	@$(MAKE) fmt
 	@touch $@
