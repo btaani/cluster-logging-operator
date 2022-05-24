@@ -2,9 +2,10 @@ package k8shandler
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/openshift/cluster-logging-operator/internal/collector/fluentd"
 	"github.com/openshift/cluster-logging-operator/internal/constants"
-	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"

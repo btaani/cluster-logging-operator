@@ -3,14 +3,15 @@ package functional
 import (
 	"context"
 	"fmt"
-	"github.com/ViaQ/logerr/log"
+	"strings"
+
+	"github.com/ViaQ/logerr/v2/log"
 	logging "github.com/openshift/cluster-logging-operator/apis/logging/v1"
 	"github.com/openshift/cluster-logging-operator/internal/utils"
 	"github.com/openshift/cluster-logging-operator/test"
 	"github.com/openshift/cluster-logging-operator/test/helpers/cmd"
 	"github.com/openshift/cluster-logging-operator/test/helpers/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"strings"
 )
 
 func (f *CollectorFunctionalFramework) ReadApplicationLogsFrom(outputName string) ([]types.ApplicationLog, error) {
@@ -37,6 +38,7 @@ func (f *CollectorFunctionalFramework) ReadApplicationLogsFromKafka(topic string
 	//inter broker zookeeper connect is plaintext so use plaintext port to check on sent messages from kafka producer ie. fluent-kafka plugin
 	//till this step it must be ensured that a topic is created and published in kafka-consumer-clo-app-topic container within functional pod
 	var result string
+	logger := log.NewLogger("read-testing")
 	outputFilename := "/shared/consumed.logs"
 	cmd := fmt.Sprintf("tail -1 %s", outputFilename)
 	err = wait.PollImmediate(defaultRetryInterval, maxDuration, func() (done bool, err error) {
@@ -44,13 +46,13 @@ func (f *CollectorFunctionalFramework) ReadApplicationLogsFromKafka(topic string
 		if result != "" && err == nil {
 			return true, nil
 		}
-		log.V(4).Error(err, "Polling logs from kafka")
+		logger.V(4).Error(err, "Polling logs from kafka")
 		return false, nil
 	})
 	if err == nil {
 		results = strings.Split(strings.TrimSpace(result), "\n")
 	}
-	log.V(4).Info("Returning", "logs", result)
+	logger.V(4).Info("Returning", "logs", result)
 	return results, err
 }
 
@@ -74,6 +76,7 @@ func (f *CollectorFunctionalFramework) ReadLogsFrom(outputName, sourceType strin
 	}
 	readLogs := func() ([]string, error) {
 		var result string
+		logger := log.NewLogger("read-testing")
 		outputFiles, ok := outputLogFile[outputType]
 		if !ok {
 			return nil, fmt.Errorf(fmt.Sprintf("cant find output of type %s in outputSpec %v", outputName, outputSpecs))
@@ -87,13 +90,13 @@ func (f *CollectorFunctionalFramework) ReadLogsFrom(outputName, sourceType strin
 			if result != "" && err == nil {
 				return true, nil
 			}
-			log.V(4).Error(err, "Polling logs")
+			logger.V(4).Error(err, "Polling logs")
 			return false, nil
 		})
 		if err == nil {
 			results = strings.Split(strings.TrimSpace(result), "\n")
 		}
-		log.V(4).Info("Returning", "logs", result)
+		logger.V(4).Info("Returning", "logs", result)
 		return results, err
 	}
 	if outputType == logging.OutputTypeElasticsearch {
@@ -113,17 +116,18 @@ func (f *CollectorFunctionalFramework) ReadLogsFrom(outputName, sourceType strin
 
 func (f *CollectorFunctionalFramework) ReadNApplicationLogsFrom(n uint64, outputName string) ([]string, error) {
 	lines := []string{}
+	logger := log.NewLogger("read-testing")
 	ctx, cancel := context.WithTimeout(context.Background(), test.SuccessTimeout())
 	defer cancel()
 	reader, err := cmd.TailReaderForContainer(f.Pod, outputName, ApplicationLogFile)
 	if err != nil {
-		log.V(3).Error(err, "Error creating tail reader")
+		logger.V(3).Error(err, "Error creating tail reader")
 		return nil, err
 	}
 	for {
 		line, err := reader.ReadLineContext(ctx)
 		if err != nil {
-			log.V(3).Error(err, "Error readlinecontext")
+			logger.V(3).Error(err, "Error readlinecontext")
 			return nil, err
 		}
 		lines = append(lines, line)

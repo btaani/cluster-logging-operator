@@ -14,8 +14,8 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
-	github.com/openshift/api v0.0.0-20210713130143-be21c6cb1bea
-	github.com/openshift/elasticsearch-operator v0.0.0-20220110181307-4e889bb6cdcf
+	github.com/openshift/api v0.0.0-20220124143425-d74727069f6f
+	github.com/openshift/elasticsearch-operator v0.0.0-20220510141603-65a736a07be1
 	github.com/pavel-v-chernykh/keystore-go/v4 v4.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
@@ -33,7 +33,7 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/ViaQ/logerr v1.0.10
+require github.com/ViaQ/logerr/v2 v2.0.0
 
 require (
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect

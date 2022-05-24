@@ -2,7 +2,8 @@ package functional
 
 import (
 	"context"
-	"github.com/ViaQ/logerr/log"
+
+	"github.com/ViaQ/logerr/v2/log"
 	cwl "github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -23,7 +24,7 @@ func (f *CollectorFunctionalFramework) GetAllCloudwatchGroups(svc *cwl.Client) (
 	if err != nil {
 		return nil, err
 	}
-	log.V(3).Info("Results", "logGroups", logGroupsOutput.LogGroups)
+	log.NewLogger("output-cloudwatch-testing").V(3).Info("Results", "logGroups", logGroupsOutput.LogGroups)
 
 	for _, l := range logGroupsOutput.LogGroups {
 		allGroups = append(allGroups, *l.LogGroupName)
@@ -47,7 +48,7 @@ func (f *CollectorFunctionalFramework) GetLogGroupsByType(client *cwl.Client, in
 	if err != nil {
 		return nil, err
 	}
-	log.V(3).Info("Results", "logGroups", logGroupsOutput.LogGroups)
+	log.NewLogger("output-cloudwatch-testing").V(3).Info("Results", "logGroups", logGroupsOutput.LogGroups)
 
 	for _, l := range logGroupsOutput.LogGroups {
 		// Filter by type and get all
@@ -113,26 +114,27 @@ func (f *CollectorFunctionalFramework) GetLogMessagesByGroupAndStream(client *cw
 }
 
 func (f *CollectorFunctionalFramework) ReadLogsFromCloudwatch(client *cwl.Client, inputName string) ([]string, error) {
-	log.V(3).Info("Retrieving cloudwatch LogGroups ----------", "LogGroupName:", inputName)
+	logger := log.NewLogger("output-cloudwatch-testing")
+	logger.V(3).Info("Retrieving cloudwatch LogGroups ----------", "LogGroupName:", inputName)
 	logGroupNames, err := f.GetLogGroupsByType(client, inputName)
 	if err != nil {
 		return nil, err
 	}
-	log.V(3).Info("Results", "logGroups", logGroupNames)
+	logger.V(3).Info("Results", "logGroups", logGroupNames)
 
-	log.V(3).Info("Retrieving cloudwatch LogStreams ----------")
+	logger.V(3).Info("Retrieving cloudwatch LogStreams ----------")
 	logStreams, e := f.GetLogStreamsByGroup(client, logGroupNames[0])
 	if e != nil {
 		return nil, e
 	}
-	log.V(3).Info("Results", "logStreams", logStreams)
+	logger.V(3).Info("Results", "logStreams", logStreams)
 
-	log.V(3).Info("Retrieving cloudwatch LogEvents  ----------")
+	logger.V(3).Info("Retrieving cloudwatch LogEvents  ----------")
 	myMessages, er := f.GetLogMessagesByGroupAndStream(client, logGroupNames[0], logStreams[0])
 	if er != nil {
 		return nil, er
 	}
-	log.V(3).Info("Results", "myMessages", myMessages)
+	logger.V(3).Info("Results", "myMessages", myMessages)
 
 	return myMessages, nil
 }
